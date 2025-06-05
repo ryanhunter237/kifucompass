@@ -1,3 +1,89 @@
-document.querySelector("#app").innerHTML = `
+import GoGame from './board.js';
+
+const app = document.querySelector('#app');
+app.innerHTML = `
   <h1>Kifu Compass</h1>
+  <canvas id="board" width="450" height="450"></canvas>
+  <div>
+    <button id="undo">Back</button>
+  </div>
+  <div id="suggestion"></div>
 `;
+
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const game = new GoGame(9);
+
+const CELL_SIZE = canvas.width / (game.size + 1);
+
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < game.size; i++) {
+    ctx.beginPath();
+    ctx.moveTo(CELL_SIZE, CELL_SIZE * (i + 1));
+    ctx.lineTo(CELL_SIZE * game.size, CELL_SIZE * (i + 1));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(CELL_SIZE * (i + 1), CELL_SIZE);
+    ctx.lineTo(CELL_SIZE * (i + 1), CELL_SIZE * game.size);
+    ctx.stroke();
+  }
+
+  // draw star points for 9x9
+  const star = [
+    [2, 2],
+    [2, 6],
+    [6, 2],
+    [6, 6],
+    [4, 4],
+  ];
+  for (const [x, y] of star) {
+    ctx.beginPath();
+    ctx.fillStyle = '#000';
+    ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawStones();
+}
+
+function drawStones() {
+  for (let x = 0; x < game.size; x++) {
+    for (let y = 0; y < game.size; y++) {
+      if (game.board[x][y] !== 0) {
+        ctx.beginPath();
+        ctx.fillStyle = game.board[x][y] === 1 ? '#000' : '#fff';
+        ctx.strokeStyle = '#000';
+        ctx.arc(
+          (x + 1) * CELL_SIZE,
+          (y + 1) * CELL_SIZE,
+          CELL_SIZE / 2 - 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
+  const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
+  if (game.attemptPlace(x, y)) {
+    drawBoard();
+  }
+});
+
+document.getElementById('undo').addEventListener('click', () => {
+  if (game.undo()) {
+    drawBoard();
+  }
+});
+
+drawBoard();
