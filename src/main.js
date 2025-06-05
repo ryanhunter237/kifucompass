@@ -15,6 +15,7 @@ const ctx = canvas.getContext('2d');
 const game = new GoGame(9);
 
 const CELL_SIZE = canvas.width / (game.size + 1);
+let hoverPos = null;
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -48,6 +49,7 @@ function drawBoard() {
   }
 
   drawStones();
+  drawHoverStone();
 }
 
 function drawStones() {
@@ -71,6 +73,28 @@ function drawStones() {
   }
 }
 
+function drawHoverStone() {
+  if (!hoverPos) return;
+  const { x, y } = hoverPos;
+  if (x < 0 || x >= game.size || y < 0 || y >= game.size) return;
+  if (game.board[x][y] !== 0) return;
+
+  ctx.beginPath();
+  ctx.fillStyle = game.currentPlayer === 1 ? '#000' : '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.arc(
+    (x + 1) * CELL_SIZE,
+    (y + 1) * CELL_SIZE,
+    CELL_SIZE / 2 - 2,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+  ctx.stroke();
+  ctx.lineWidth = 1;
+}
+
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
@@ -78,6 +102,19 @@ canvas.addEventListener('click', (e) => {
   if (game.attemptPlace(x, y)) {
     drawBoard();
   }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
+  const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
+  hoverPos = { x, y };
+  drawBoard();
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoverPos = null;
+  drawBoard();
 });
 
 document.getElementById('undo').addEventListener('click', () => {
