@@ -19,6 +19,11 @@ let hoverPos = null;
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const extra = 5; // padding around the outer stones
+  const boardStart = CELL_SIZE / 2 - extra;
+  const boardSize = CELL_SIZE * game.size + extra * 2;
+  ctx.fillStyle = '#DDB06D';
+  ctx.fillRect(boardStart, boardStart, boardSize, boardSize);
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 1;
   for (let i = 0; i < game.size; i++) {
