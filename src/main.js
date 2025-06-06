@@ -19,9 +19,14 @@ const game = new GoGame(9);
 let CELL_SIZE;
 
 function updateCanvasSize() {
-  const size = canvas.clientWidth;
+  const container = canvas.parentElement;
+  const size = Math.min(container.clientWidth, container.clientHeight);
+
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
   canvas.width = size;
   canvas.height = size;
+
   CELL_SIZE = canvas.width / (game.size + 1);
 }
 let hoverPos = null;
