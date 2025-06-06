@@ -4,6 +4,7 @@ class GoGame {
     this.board = Array.from({ length: size }, () => Array(size).fill(0));
     this.currentPlayer = 1; // 1 = black, 2 = white
     this.history = [this.cloneBoard(this.board)];
+    this.currentIndex = 0;
   }
 
   cloneBoard(board) {
@@ -87,23 +88,41 @@ class GoGame {
     }
 
     // Ko check
-    if (this.history.length >= 2) {
-      const prevStr = this.boardToString(this.history[this.history.length - 2]);
+    if (this.currentIndex >= 1) {
+      const prevStr = this.boardToString(this.history[this.currentIndex - 1]);
       if (prevStr === this.boardToString(newBoard)) return false;
     }
 
     this.board = newBoard;
+    // drop future moves if new move is made after undo
+    this.history = this.history.slice(0, this.currentIndex + 1);
     this.history.push(this.cloneBoard(this.board));
-    this.currentPlayer = opp;
+    this.currentIndex++;
+    this.currentPlayer = this.currentIndex % 2 === 0 ? 1 : 2;
     return true;
   }
 
   undo() {
-    if (this.history.length <= 1) return false;
-    this.history.pop();
-    this.board = this.cloneBoard(this.history[this.history.length - 1]);
-    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+    if (this.currentIndex <= 0) return false;
+    this.currentIndex--;
+    this.board = this.cloneBoard(this.history[this.currentIndex]);
+    this.currentPlayer = this.currentIndex % 2 === 0 ? 1 : 2;
     return true;
+  }
+
+  redo() {
+    if (this.currentIndex >= this.history.length - 1) return false;
+    this.currentIndex++;
+    this.board = this.cloneBoard(this.history[this.currentIndex]);
+    this.currentPlayer = this.currentIndex % 2 === 0 ? 1 : 2;
+    return true;
+  }
+
+  clear() {
+    this.board = Array.from({ length: this.size }, () => Array(this.size).fill(0));
+    this.history = [this.cloneBoard(this.board)];
+    this.currentIndex = 0;
+    this.currentPlayer = 1;
   }
 }
 
