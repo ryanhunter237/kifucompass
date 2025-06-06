@@ -2,8 +2,10 @@ import GoGame from './board.js';
 
 const app = document.querySelector('#app');
 app.innerHTML = `
-  <h1>Kifu Compass</h1>
-  <canvas id="board" width="450" height="450"></canvas>
+  <div class="banner"><h1>Kifu Compass</h1></div>
+  <div class="board-container">
+    <canvas id="board"></canvas>
+  </div>
   <div>
     <button id="undo">Back</button>
   </div>
@@ -14,7 +16,14 @@ const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const game = new GoGame(9);
 
-const CELL_SIZE = canvas.width / (game.size + 1);
+let CELL_SIZE;
+
+function updateCanvasSize() {
+  const size = canvas.clientWidth;
+  canvas.width = size;
+  canvas.height = size;
+  CELL_SIZE = canvas.width / (game.size + 1);
+}
 let hoverPos = null;
 
 function drawBoard() {
@@ -128,4 +137,10 @@ document.getElementById('undo').addEventListener('click', () => {
   }
 });
 
+updateCanvasSize();
 drawBoard();
+
+window.addEventListener('resize', () => {
+  updateCanvasSize();
+  drawBoard();
+});
