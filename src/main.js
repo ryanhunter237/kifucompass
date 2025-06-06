@@ -20,7 +20,22 @@ let CELL_SIZE;
 
 function updateCanvasSize() {
   const container = canvas.parentElement;
-  const size = Math.min(container.clientWidth, container.clientHeight);
+  const header = document.querySelector('.banner');
+  const undo = document.getElementById('undo');
+  const suggestion = document.getElementById('suggestion');
+
+  const paddingTop = parseFloat(getComputedStyle(container).paddingTop) || 0;
+  const paddingBottom = parseFloat(getComputedStyle(container).paddingBottom) || 0;
+
+  const availableHeight =
+    window.innerHeight -
+    header.offsetHeight -
+    undo.offsetHeight -
+    suggestion.offsetHeight -
+    paddingTop -
+    paddingBottom;
+
+  const size = Math.min(container.clientWidth, availableHeight);
 
   canvas.style.width = `${size}px`;
   canvas.style.height = `${size}px`;
