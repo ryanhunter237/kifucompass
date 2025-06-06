@@ -6,8 +6,10 @@ app.innerHTML = `
   <div class="board-container">
     <canvas id="board"></canvas>
   </div>
-  <div>
-    <button id="undo">Back</button>
+  <div class="controls">
+    <button id="back" title="Back">⬅️</button>
+    <button id="forward" title="Forward">➡️</button>
+    <button id="clear" title="Clear">🗑️</button>
   </div>
   <div id="suggestion"></div>
 `;
@@ -21,7 +23,7 @@ let CELL_SIZE;
 function updateCanvasSize() {
   const container = canvas.parentElement;
   const header = document.querySelector('.banner');
-  const undo = document.getElementById('undo');
+  const controls = document.querySelector('.controls');
   const suggestion = document.getElementById('suggestion');
 
   const paddingTop = parseFloat(getComputedStyle(container).paddingTop) || 0;
@@ -30,7 +32,7 @@ function updateCanvasSize() {
   const availableHeight =
     window.innerHeight -
     header.offsetHeight -
-    undo.offsetHeight -
+    controls.offsetHeight -
     suggestion.offsetHeight -
     paddingTop -
     paddingBottom;
@@ -151,10 +153,21 @@ canvas.addEventListener('mouseleave', () => {
   drawBoard();
 });
 
-document.getElementById('undo').addEventListener('click', () => {
+document.getElementById('back').addEventListener('click', () => {
   if (game.undo()) {
     drawBoard();
   }
+});
+
+document.getElementById('forward').addEventListener('click', () => {
+  if (game.redo()) {
+    drawBoard();
+  }
+});
+
+document.getElementById('clear').addEventListener('click', () => {
+  game.clear();
+  drawBoard();
 });
 
 updateCanvasSize();
