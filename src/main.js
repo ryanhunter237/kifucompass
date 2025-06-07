@@ -1,5 +1,21 @@
 import GoGame from './board.js';
 
+import black00 from './assets/stones/black00_128.png';
+import black01 from './assets/stones/black01_128.png';
+import black02 from './assets/stones/black02_128.png';
+import black03 from './assets/stones/black03_128.png';
+import white00 from './assets/stones/white00_128.png';
+import white01 from './assets/stones/white01_128.png';
+import white02 from './assets/stones/white02_128.png';
+import white03 from './assets/stones/white03_128.png';
+import white04 from './assets/stones/white04_128.png';
+import white05 from './assets/stones/white05_128.png';
+import white06 from './assets/stones/white06_128.png';
+import white07 from './assets/stones/white07_128.png';
+import white08 from './assets/stones/white08_128.png';
+import white09 from './assets/stones/white09_128.png';
+import white10 from './assets/stones/white10_128.png';
+
 const app = document.querySelector('#app');
 app.innerHTML = `
   <div class="banner"><h1>Kifu Compass</h1></div>
@@ -17,6 +33,39 @@ app.innerHTML = `
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const game = new GoGame(9);
+
+const blackSources = [black00, black01, black02, black03];
+const whiteSources = [
+  white00,
+  white01,
+  white02,
+  white03,
+  white04,
+  white05,
+  white06,
+  white07,
+  white08,
+  white09,
+  white10,
+];
+
+function createImages(srcArr) {
+  return srcArr.map((src) => {
+    const img = new Image();
+    img.src = src;
+    return img;
+  });
+}
+
+const blackImages = createImages(blackSources);
+const whiteImages = createImages(whiteSources);
+
+let boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
+let boardImagesHistory = [boardImages.map((row) => row.slice())];
+
+let hoverPos = null;
+let hoverImg = null;
+let hoverColor = null;
 
 let CELL_SIZE;
 
@@ -46,7 +95,6 @@ function updateCanvasSize() {
 
   CELL_SIZE = canvas.width / (game.size + 1);
 }
-let hoverPos = null;
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -89,21 +137,31 @@ function drawBoard() {
 }
 
 function drawStones() {
+  const size = CELL_SIZE - 4;
   for (let x = 0; x < game.size; x++) {
     for (let y = 0; y < game.size; y++) {
       if (game.board[x][y] !== 0) {
-        ctx.beginPath();
-        ctx.fillStyle = game.board[x][y] === 1 ? '#000' : '#fff';
-        ctx.strokeStyle = '#000';
-        ctx.arc(
-          (x + 1) * CELL_SIZE,
-          (y + 1) * CELL_SIZE,
-          CELL_SIZE / 2 - 2,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-        ctx.stroke();
+        const img = boardImages[x][y];
+        if (img) {
+          ctx.drawImage(
+            img,
+            (x + 1) * CELL_SIZE - size / 2,
+            (y + 1) * CELL_SIZE - size / 2,
+            size,
+            size
+          );
+        } else {
+          ctx.beginPath();
+          ctx.fillStyle = game.board[x][y] === 1 ? '#000' : '#fff';
+          ctx.arc(
+            (x + 1) * CELL_SIZE,
+            (y + 1) * CELL_SIZE,
+            CELL_SIZE / 2 - 2,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+        }
       }
     }
   }
@@ -114,28 +172,37 @@ function drawHoverStone() {
   const { x, y } = hoverPos;
   if (x < 0 || x >= game.size || y < 0 || y >= game.size) return;
   if (game.board[x][y] !== 0) return;
-
-  ctx.beginPath();
-  ctx.fillStyle = game.currentPlayer === 1 ? '#000' : '#fff';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.arc(
-    (x + 1) * CELL_SIZE,
-    (y + 1) * CELL_SIZE,
-    CELL_SIZE / 2 - 2,
-    0,
-    Math.PI * 2
+  const size = CELL_SIZE - 4;
+  if (!hoverImg) return;
+  ctx.globalAlpha = 0.6;
+  ctx.drawImage(
+    hoverImg,
+    (x + 1) * CELL_SIZE - size / 2,
+    (y + 1) * CELL_SIZE - size / 2,
+    size,
+    size
   );
-  ctx.fill();
-  ctx.stroke();
-  ctx.lineWidth = 1;
+  ctx.globalAlpha = 1;
 }
 
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
   const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
+  const oldBoard = game.cloneBoard(game.board);
+  const prevIndex = game.currentIndex;
   if (game.attemptPlace(x, y)) {
+    boardImages[x][y] = hoverImg;
+    for (let i = 0; i < game.size; i++) {
+      for (let j = 0; j < game.size; j++) {
+        if (oldBoard[i][j] !== game.board[i][j] && game.board[i][j] === 0) {
+          boardImages[i][j] = null;
+        }
+      }
+    }
+    boardImagesHistory = boardImagesHistory.slice(0, prevIndex + 1);
+    boardImagesHistory.push(boardImages.map((row) => row.slice()));
+    hoverImg = null;
     drawBoard();
   }
 });
@@ -144,29 +211,53 @@ canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
   const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
+  const samePos = hoverPos && hoverPos.x === x && hoverPos.y === y;
+  const needsNewImg =
+    !samePos || hoverColor !== game.currentPlayer || hoverImg === null;
   hoverPos = { x, y };
+  if (
+    x >= 0 &&
+    x < game.size &&
+    y >= 0 &&
+    y < game.size &&
+    game.board[x][y] === 0
+  ) {
+    if (needsNewImg) {
+      const arr = game.currentPlayer === 1 ? blackImages : whiteImages;
+      hoverImg = arr[Math.floor(Math.random() * arr.length)];
+      hoverColor = game.currentPlayer;
+    }
+  } else {
+    hoverImg = null;
+  }
   drawBoard();
 });
 
 canvas.addEventListener('mouseleave', () => {
   hoverPos = null;
+  hoverImg = null;
   drawBoard();
 });
 
 document.getElementById('back').addEventListener('click', () => {
   if (game.undo()) {
+    boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     drawBoard();
   }
 });
 
 document.getElementById('forward').addEventListener('click', () => {
   if (game.redo()) {
+    boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     drawBoard();
   }
 });
 
 document.getElementById('clear').addEventListener('click', () => {
   game.clear();
+  boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
+  boardImagesHistory = [boardImages.map((row) => row.slice())];
+  hoverImg = null;
   drawBoard();
 });
 
