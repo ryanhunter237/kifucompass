@@ -15,6 +15,9 @@ import white07 from './assets/stones/white07_128.png';
 import white08 from './assets/stones/white08_128.png';
 import white09 from './assets/stones/white09_128.png';
 import white10 from './assets/stones/white10_128.png';
+import leftIcon from './assets/icons/left.svg';
+import rightIcon from './assets/icons/right.svg';
+import resetIcon from './assets/icons/reset.svg';
 
 const app = document.querySelector('#app');
 app.innerHTML = `
@@ -23,9 +26,15 @@ app.innerHTML = `
     <canvas id="board"></canvas>
   </div>
   <div class="controls">
-    <button id="back" title="Back">⬅️</button>
-    <button id="forward" title="Forward">➡️</button>
-    <button id="clear" title="Clear">🗑️</button>
+    <button id="back" title="Back" class="control-btn">
+      <img src="${leftIcon}" alt="Back" />
+    </button>
+    <button id="forward" title="Forward" class="control-btn">
+      <img src="${rightIcon}" alt="Forward" />
+    </button>
+    <button id="clear" title="Clear" class="control-btn">
+      <img src="${resetIcon}" alt="Clear" />
+    </button>
   </div>
   <div id="suggestion"></div>
 `;
