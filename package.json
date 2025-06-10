@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "msw": "^2.10.2",
     "vite": "^6.3.5"
   }
 }
