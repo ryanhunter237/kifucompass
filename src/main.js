@@ -79,6 +79,8 @@ let hoverPos = null;
 let hoverImg = null;
 let hoverColor = null;
 
+let suggestedMoves = [];
+
 let CELL_SIZE;
 
 function updateCanvasSize() {
@@ -145,6 +147,7 @@ function drawBoard() {
   }
 
   drawStones();
+  drawSuggestedMoves();
   drawHoverStone();
 }
 
@@ -176,6 +179,33 @@ function drawStones() {
         }
       }
     }
+  }
+}
+
+function drawSuggestedMoves() {
+  if (!suggestedMoves.length) return;
+  const radius = CELL_SIZE / 2 - 2;
+  const max = Math.max(...suggestedMoves.map((m) => m.count));
+  const startColor = { r: 173, g: 216, b: 230 };
+  const endColor = { r: 0, g: 0, b: 139 };
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `${CELL_SIZE / 2}px Arial`;
+  for (const { move, count } of suggestedMoves) {
+    const [x, y] = move;
+    if (game.board[x][y] !== 0) continue;
+    const ratio = max === 0 ? 0 : count / max;
+    const r = Math.round(startColor.r + ratio * (endColor.r - startColor.r));
+    const g = Math.round(startColor.g + ratio * (endColor.g - startColor.g));
+    const b = Math.round(startColor.b + ratio * (endColor.b - startColor.b));
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = ratio > 0.5 ? '#fff' : '#000';
+    ctx.fillText(count, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE);
   }
 }
 
@@ -215,6 +245,7 @@ canvas.addEventListener('click', (e) => {
     boardImagesHistory = boardImagesHistory.slice(0, prevIndex + 1);
     boardImagesHistory.push(boardImages.map((row) => row.slice()));
     hoverImg = null;
+    suggestedMoves = [];
     drawBoard();
 
     const boardStr = game.boardToString(game.board);
@@ -225,7 +256,10 @@ canvas.addEventListener('click', (e) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('next moves', data);
+        if (data && Array.isArray(data.moves)) {
+          suggestedMoves = data.moves;
+          drawBoard();
+        }
       })
       .catch((err) => console.error(err));
   }
@@ -266,6 +300,7 @@ canvas.addEventListener('mouseleave', () => {
 document.getElementById('back').addEventListener('click', () => {
   if (game.undo()) {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
+    suggestedMoves = [];
     drawBoard();
   }
 });
@@ -273,6 +308,7 @@ document.getElementById('back').addEventListener('click', () => {
 document.getElementById('forward').addEventListener('click', () => {
   if (game.redo()) {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
+    suggestedMoves = [];
     drawBoard();
   }
 });
@@ -282,6 +318,7 @@ document.getElementById('clear').addEventListener('click', () => {
   boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
   boardImagesHistory = [boardImages.map((row) => row.slice())];
   hoverImg = null;
+  suggestedMoves = [];
   drawBoard();
 });
 
