@@ -1,4 +1,7 @@
 import GoGame from './board.js';
+import { worker } from './mocks/browser.js';
+
+worker.start();
 
 import black00 from './assets/stones/black00_128.png';
 import black01 from './assets/stones/black01_128.png';
@@ -213,6 +216,18 @@ canvas.addEventListener('click', (e) => {
     boardImagesHistory.push(boardImages.map((row) => row.slice()));
     hoverImg = null;
     drawBoard();
+
+    const boardStr = game.boardToString(game.board);
+    fetch('/api/next-moves', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ board: boardStr }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('next moves', data);
+      })
+      .catch((err) => console.error(err));
   }
 });
 
