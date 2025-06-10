@@ -15,6 +15,11 @@ export const handlers = [
         }
       }
     }
-    return HttpResponse.json({ moves });
+
+    const maxMoves = Math.max(1, Math.floor(moves.length / 2));
+    const numMoves = Math.floor(Math.random() * maxMoves) + 1;
+    const subset = moves.sort(() => 0.5 - Math.random()).slice(0, numMoves);
+
+    return HttpResponse.json({ moves: subset });
   }),
 ];
