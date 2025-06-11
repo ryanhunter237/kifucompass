@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, delay, HttpResponse } from "msw";
 
 export const handlers = [
   http.post("/api/next-moves", async ({ request }) => {
@@ -20,6 +20,7 @@ export const handlers = [
     const numMoves = Math.floor(Math.random() * maxMoves) + 1;
     const subset = moves.sort(() => 0.5 - Math.random()).slice(0, numMoves);
 
+    await delay();
     return HttpResponse.json({ moves: subset });
   }),
 ];
