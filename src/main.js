@@ -83,6 +83,23 @@ let suggestedMoves = [];
 
 let CELL_SIZE;
 
+function fetchNextMoves() {
+  const boardStr = game.boardToString(game.board);
+  fetch('/api/next-moves', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ board: boardStr }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && Array.isArray(data.moves)) {
+        suggestedMoves = data.moves;
+        drawBoard();
+      }
+    })
+    .catch((err) => console.error(err));
+}
+
 function updateCanvasSize() {
   const container = canvas.parentElement;
   const header = document.querySelector('.banner');
@@ -248,20 +265,7 @@ canvas.addEventListener('click', (e) => {
     suggestedMoves = [];
     drawBoard();
 
-    const boardStr = game.boardToString(game.board);
-    fetch('/api/next-moves', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ board: boardStr }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && Array.isArray(data.moves)) {
-          suggestedMoves = data.moves;
-          drawBoard();
-        }
-      })
-      .catch((err) => console.error(err));
+    fetchNextMoves();
   }
 });
 
@@ -320,10 +324,12 @@ document.getElementById('clear').addEventListener('click', () => {
   hoverImg = null;
   suggestedMoves = [];
   drawBoard();
+  fetchNextMoves();
 });
 
 updateCanvasSize();
 drawBoard();
+fetchNextMoves();
 
 window.addEventListener('resize', () => {
   updateCanvasSize();
