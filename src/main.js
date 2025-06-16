@@ -1,7 +1,9 @@
 import GoGame from './board.js';
 import { worker } from './mocks/browser.js';
 
-worker.start();
+async function initMocks() {
+  await worker.start();
+}
 
 import black00 from './assets/stones/black00_128.png';
 import black01 from './assets/stones/black01_128.png';
@@ -320,7 +322,9 @@ document.getElementById('forward').addEventListener('click', () => {
 
 document.getElementById('clear').addEventListener('click', () => {
   game.clear();
-  boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
+  boardImages = Array.from({ length: game.size }, () =>
+    Array(game.size).fill(null)
+  );
   boardImagesHistory = [boardImages.map((row) => row.slice())];
   hoverImg = null;
   suggestedMoves = [];
@@ -328,11 +332,16 @@ document.getElementById('clear').addEventListener('click', () => {
   fetchSuggestedMoves();
 });
 
-updateCanvasSize();
-drawBoard();
-fetchSuggestedMoves();
-
 window.addEventListener('resize', () => {
   updateCanvasSize();
   drawBoard();
 });
+
+async function init() {
+  await initMocks();
+  updateCanvasSize();
+  drawBoard();
+  fetchSuggestedMoves();
+}
+
+init();
