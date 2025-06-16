@@ -83,6 +83,23 @@ let suggestedMoves = [];
 
 let CELL_SIZE;
 
+function fetchSuggestedMoves() {
+  const boardStr = game.boardToString(game.board);
+  return fetch('/api/next-moves', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ board: boardStr }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && Array.isArray(data.moves)) {
+        suggestedMoves = data.moves;
+        drawBoard();
+      }
+    })
+    .catch((err) => console.error(err));
+}
+
 function updateCanvasSize() {
   const container = canvas.parentElement;
   const header = document.querySelector('.banner');
@@ -247,21 +264,7 @@ canvas.addEventListener('click', (e) => {
     hoverImg = null;
     suggestedMoves = [];
     drawBoard();
-
-    const boardStr = game.boardToString(game.board);
-    fetch('/api/next-moves', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ board: boardStr }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && Array.isArray(data.moves)) {
-          suggestedMoves = data.moves;
-          drawBoard();
-        }
-      })
-      .catch((err) => console.error(err));
+    fetchSuggestedMoves();
   }
 });
 
@@ -302,6 +305,7 @@ document.getElementById('back').addEventListener('click', () => {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     suggestedMoves = [];
     drawBoard();
+    fetchSuggestedMoves();
   }
 });
 
@@ -310,6 +314,7 @@ document.getElementById('forward').addEventListener('click', () => {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     suggestedMoves = [];
     drawBoard();
+    fetchSuggestedMoves();
   }
 });
 
@@ -320,10 +325,12 @@ document.getElementById('clear').addEventListener('click', () => {
   hoverImg = null;
   suggestedMoves = [];
   drawBoard();
+  fetchSuggestedMoves();
 });
 
 updateCanvasSize();
 drawBoard();
+fetchSuggestedMoves();
 
 window.addEventListener('resize', () => {
   updateCanvasSize();
