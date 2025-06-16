@@ -1,7 +1,9 @@
 import GoGame from './board.js';
 import { worker } from './mocks/browser.js';
 
-worker.start();
+async function initMocks() {
+  await worker.start();
+}
 
 import black00 from './assets/stones/black00_128.png';
 import black01 from './assets/stones/black01_128.png';
@@ -82,6 +84,23 @@ let hoverColor = null;
 let suggestedMoves = [];
 
 let CELL_SIZE;
+
+function fetchSuggestedMoves() {
+  const boardStr = game.boardToString(game.board);
+  return fetch('/api/next-moves', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ board: boardStr }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && Array.isArray(data.moves)) {
+        suggestedMoves = data.moves;
+        drawBoard();
+      }
+    })
+    .catch((err) => console.error(err));
+}
 
 function updateCanvasSize() {
   const container = canvas.parentElement;
@@ -247,21 +266,7 @@ canvas.addEventListener('click', (e) => {
     hoverImg = null;
     suggestedMoves = [];
     drawBoard();
-
-    const boardStr = game.boardToString(game.board);
-    fetch('/api/next-moves', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ board: boardStr }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && Array.isArray(data.moves)) {
-          suggestedMoves = data.moves;
-          drawBoard();
-        }
-      })
-      .catch((err) => console.error(err));
+    fetchSuggestedMoves();
   }
 });
 
@@ -302,6 +307,7 @@ document.getElementById('back').addEventListener('click', () => {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     suggestedMoves = [];
     drawBoard();
+    fetchSuggestedMoves();
   }
 });
 
@@ -310,22 +316,32 @@ document.getElementById('forward').addEventListener('click', () => {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     suggestedMoves = [];
     drawBoard();
+    fetchSuggestedMoves();
   }
 });
 
 document.getElementById('clear').addEventListener('click', () => {
   game.clear();
-  boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
+  boardImages = Array.from({ length: game.size }, () =>
+    Array(game.size).fill(null)
+  );
   boardImagesHistory = [boardImages.map((row) => row.slice())];
   hoverImg = null;
   suggestedMoves = [];
   drawBoard();
+  fetchSuggestedMoves();
 });
-
-updateCanvasSize();
-drawBoard();
 
 window.addEventListener('resize', () => {
   updateCanvasSize();
   drawBoard();
 });
+
+async function init() {
+  await initMocks();
+  updateCanvasSize();
+  drawBoard();
+  fetchSuggestedMoves();
+}
+
+init();
