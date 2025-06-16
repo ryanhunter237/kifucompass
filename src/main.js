@@ -81,6 +81,23 @@ let hoverColor = null;
 
 let suggestedMoves = [];
 
+function fetchSuggestedMoves() {
+  const boardStr = game.boardToString(game.board);
+  fetch('/api/next-moves', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ board: boardStr }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && Array.isArray(data.moves)) {
+        suggestedMoves = data.moves;
+        drawBoard();
+      }
+    })
+    .catch((err) => console.error(err));
+}
+
 let CELL_SIZE;
 
 function updateCanvasSize() {
@@ -248,20 +265,7 @@ canvas.addEventListener('click', (e) => {
     suggestedMoves = [];
     drawBoard();
 
-    const boardStr = game.boardToString(game.board);
-    fetch('/api/next-moves', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ board: boardStr }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && Array.isArray(data.moves)) {
-          suggestedMoves = data.moves;
-          drawBoard();
-        }
-      })
-      .catch((err) => console.error(err));
+    fetchSuggestedMoves();
   }
 });
 
@@ -302,6 +306,9 @@ document.getElementById('back').addEventListener('click', () => {
     boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
     suggestedMoves = [];
     drawBoard();
+    if (game.currentIndex === 0) {
+      fetchSuggestedMoves();
+    }
   }
 });
 
@@ -320,10 +327,12 @@ document.getElementById('clear').addEventListener('click', () => {
   hoverImg = null;
   suggestedMoves = [];
   drawBoard();
+  fetchSuggestedMoves();
 });
 
 updateCanvasSize();
 drawBoard();
+fetchSuggestedMoves();
 
 window.addEventListener('resize', () => {
   updateCanvasSize();
