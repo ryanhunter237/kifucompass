@@ -344,7 +344,9 @@ window.addEventListener("resize", () => {
 });
 
 async function init() {
-  await initMocks();
+  if (import.meta.env.MODE === "development") {
+    await initMocks();
+  }
   updateCanvasSize();
   drawBoard();
   fetchSuggestedMoves();
