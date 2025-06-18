@@ -5,10 +5,7 @@ async function initMocks() {
   await worker.start();
 }
 
-import {
-  blackImages,
-  whiteImages,
-} from "./utils/imageLoader.js";
+import { blackImages, whiteImages } from "./utils/imageLoader.js";
 import {
   updateCanvasSize,
   drawBoardBackground,
@@ -42,11 +39,9 @@ app.innerHTML = `
 
 const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
-// offscreen canvas used to store the static board background
 const boardCanvas = document.createElement("canvas");
 const boardCtx = boardCanvas.getContext("2d");
 const game = new GoGame(9);
-
 
 let boardImages = Array.from({ length: game.size }, () =>
   Array(game.size).fill(null)
@@ -65,7 +60,16 @@ function updateSuggestions() {
     (moves) => {
       suggestedMoves = moves;
     },
-    () => drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game)
+    () =>
+      drawBoard(
+        ctx,
+        boardCanvas,
+        boardImages,
+        suggestedMoves,
+        hoverPos,
+        hoverImg,
+        game
+      )
   );
 }
 
@@ -89,7 +93,15 @@ canvas.addEventListener("click", (e) => {
     boardImagesHistory.push(boardImages.map((row) => row.slice()));
     hoverImg = null;
     suggestedMoves = [];
-    drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+    drawBoard(
+      ctx,
+      boardCanvas,
+      boardImages,
+      suggestedMoves,
+      hoverPos,
+      hoverImg,
+      game
+    );
     updateSuggestions();
   }
 });
@@ -121,13 +133,29 @@ canvas.addEventListener("mousemove", (e) => {
   } else {
     hoverImg = null;
   }
-  drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+  drawBoard(
+    ctx,
+    boardCanvas,
+    boardImages,
+    suggestedMoves,
+    hoverPos,
+    hoverImg,
+    game
+  );
 });
 
 canvas.addEventListener("mouseleave", () => {
   hoverPos = null;
   hoverImg = null;
-  drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+  drawBoard(
+    ctx,
+    boardCanvas,
+    boardImages,
+    suggestedMoves,
+    hoverPos,
+    hoverImg,
+    game
+  );
 });
 
 document.getElementById("back").addEventListener("click", () => {
@@ -136,7 +164,15 @@ document.getElementById("back").addEventListener("click", () => {
       row.slice()
     );
     suggestedMoves = [];
-    drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+    drawBoard(
+      ctx,
+      boardCanvas,
+      boardImages,
+      suggestedMoves,
+      hoverPos,
+      hoverImg,
+      game
+    );
     updateSuggestions();
   }
 });
@@ -147,7 +183,15 @@ document.getElementById("forward").addEventListener("click", () => {
       row.slice()
     );
     suggestedMoves = [];
-    drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+    drawBoard(
+      ctx,
+      boardCanvas,
+      boardImages,
+      suggestedMoves,
+      hoverPos,
+      hoverImg,
+      game
+    );
     updateSuggestions();
   }
 });
@@ -160,15 +204,31 @@ document.getElementById("clear").addEventListener("click", () => {
   boardImagesHistory = [boardImages.map((row) => row.slice())];
   hoverImg = null;
   suggestedMoves = [];
-  drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+  drawBoard(
+    ctx,
+    boardCanvas,
+    boardImages,
+    suggestedMoves,
+    hoverPos,
+    hoverImg,
+    game
+  );
   updateSuggestions();
 });
 
-  window.addEventListener("resize", () => {
-    updateCanvasSize(canvas, boardCanvas, game);
-    drawBoardBackground(boardCtx, game);
-    drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
-  });
+window.addEventListener("resize", () => {
+  updateCanvasSize(canvas, boardCanvas, game);
+  drawBoardBackground(boardCtx, game);
+  drawBoard(
+    ctx,
+    boardCanvas,
+    boardImages,
+    suggestedMoves,
+    hoverPos,
+    hoverImg,
+    game
+  );
+});
 
 async function init() {
   if (import.meta.env.MODE === "development") {
@@ -176,7 +236,15 @@ async function init() {
   }
   updateCanvasSize(canvas, boardCanvas, game);
   drawBoardBackground(boardCtx, game);
-  drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game);
+  drawBoard(
+    ctx,
+    boardCanvas,
+    boardImages,
+    suggestedMoves,
+    hoverPos,
+    hoverImg,
+    game
+  );
   updateSuggestions();
 }
 

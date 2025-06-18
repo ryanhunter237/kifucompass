@@ -12,7 +12,7 @@ class GoGame {
   }
 
   boardToString(board) {
-    return board.flat().join('');
+    return board.flat().join("");
   }
 
   isOnBoard(x, y) {
@@ -119,7 +119,9 @@ class GoGame {
   }
 
   clear() {
-    this.board = Array.from({ length: this.size }, () => Array(this.size).fill(0));
+    this.board = Array.from({ length: this.size }, () =>
+      Array(this.size).fill(0)
+    );
     this.history = [this.cloneBoard(this.board)];
     this.currentIndex = 0;
     this.currentPlayer = 1;

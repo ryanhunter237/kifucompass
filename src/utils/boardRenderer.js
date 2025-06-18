@@ -11,7 +11,8 @@ export function updateCanvasSize(canvas, boardCanvas, game) {
   const suggestion = document.getElementById("suggestion");
 
   const paddingTop = parseFloat(getComputedStyle(container).paddingTop) || 0;
-  const paddingBottom = parseFloat(getComputedStyle(container).paddingBottom) || 0;
+  const paddingBottom =
+    parseFloat(getComputedStyle(container).paddingBottom) || 0;
 
   const availableHeight =
     window.innerHeight -
@@ -146,7 +147,15 @@ export function drawHoverStone(ctx, hoverPos, hoverImg, game) {
   ctx.globalAlpha = 1;
 }
 
-export function drawBoard(ctx, boardCanvas, boardImages, suggestedMoves, hoverPos, hoverImg, game) {
+export function drawBoard(
+  ctx,
+  boardCanvas,
+  boardImages,
+  suggestedMoves,
+  hoverPos,
+  hoverImg,
+  game
+) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(boardCanvas, 0, 0);
   drawStones(ctx, boardImages, game);
