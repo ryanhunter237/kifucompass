@@ -46,6 +46,9 @@ app.innerHTML = `
 
 const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
+// offscreen canvas used to store the static board background
+const boardCanvas = document.createElement("canvas");
+const boardCtx = boardCanvas.getContext("2d");
 const game = new GoGame(9);
 
 const blackSources = [black00, black01, black02, black03];
@@ -128,29 +131,31 @@ function updateCanvasSize() {
   canvas.style.height = `${size}px`;
   canvas.width = size;
   canvas.height = size;
+  boardCanvas.width = size;
+  boardCanvas.height = size;
 
   CELL_SIZE = canvas.width / (game.size + 1);
 }
 
-function drawBoard() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawBoardBackground() {
+  boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
   const extra = 5; // padding around the outer stones
   const boardStart = CELL_SIZE / 2 - extra;
   const boardSize = CELL_SIZE * game.size + extra * 2;
-  ctx.fillStyle = "#DDB06D";
-  ctx.fillRect(boardStart, boardStart, boardSize, boardSize);
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 1;
+  boardCtx.fillStyle = "#DDB06D";
+  boardCtx.fillRect(boardStart, boardStart, boardSize, boardSize);
+  boardCtx.strokeStyle = "#000";
+  boardCtx.lineWidth = 1;
   for (let i = 0; i < game.size; i++) {
-    ctx.beginPath();
-    ctx.moveTo(CELL_SIZE, CELL_SIZE * (i + 1));
-    ctx.lineTo(CELL_SIZE * game.size, CELL_SIZE * (i + 1));
-    ctx.stroke();
+    boardCtx.beginPath();
+    boardCtx.moveTo(CELL_SIZE, CELL_SIZE * (i + 1));
+    boardCtx.lineTo(CELL_SIZE * game.size, CELL_SIZE * (i + 1));
+    boardCtx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(CELL_SIZE * (i + 1), CELL_SIZE);
-    ctx.lineTo(CELL_SIZE * (i + 1), CELL_SIZE * game.size);
-    ctx.stroke();
+    boardCtx.beginPath();
+    boardCtx.moveTo(CELL_SIZE * (i + 1), CELL_SIZE);
+    boardCtx.lineTo(CELL_SIZE * (i + 1), CELL_SIZE * game.size);
+    boardCtx.stroke();
   }
 
   // draw star points for 9x9
@@ -162,12 +167,16 @@ function drawBoard() {
     [4, 4],
   ];
   for (const [x, y] of star) {
-    ctx.beginPath();
-    ctx.fillStyle = "#000";
-    ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 3, 0, Math.PI * 2);
-    ctx.fill();
+    boardCtx.beginPath();
+    boardCtx.fillStyle = "#000";
+    boardCtx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 3, 0, Math.PI * 2);
+    boardCtx.fill();
   }
+}
 
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(boardCanvas, 0, 0);
   drawStones();
   drawSuggestedMoves();
   drawHoverStone();
@@ -277,8 +286,12 @@ canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
   const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
-  //   const samePos = hoverPos && hoverPos.x === x && hoverPos.y === y;
-  const needsNewImg = hoverColor !== game.currentPlayer || hoverImg === null;
+  const posChanged = !hoverPos || hoverPos.x !== x || hoverPos.y !== y;
+  const colorChanged = hoverColor !== game.currentPlayer;
+  if (!posChanged && !colorChanged) {
+    return;
+  }
+  const needsNewImg = colorChanged || hoverImg === null;
   hoverPos = { x, y };
   if (
     x >= 0 &&
@@ -340,6 +353,7 @@ document.getElementById("clear").addEventListener("click", () => {
 
 window.addEventListener("resize", () => {
   updateCanvasSize();
+  drawBoardBackground();
   drawBoard();
 });
 
@@ -348,6 +362,7 @@ async function init() {
     await initMocks();
   }
   updateCanvasSize();
+  drawBoardBackground();
   drawBoard();
   fetchSuggestedMoves();
 }
