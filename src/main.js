@@ -1,30 +1,30 @@
-import GoGame from './board.js';
-import { worker } from './mocks/browser.js';
+import GoGame from "./board.js";
+import { worker } from "./mocks/browser.js";
 
 async function initMocks() {
   await worker.start();
 }
 
-import black00 from './assets/stones/black00_128.png';
-import black01 from './assets/stones/black01_128.png';
-import black02 from './assets/stones/black02_128.png';
-import black03 from './assets/stones/black03_128.png';
-import white00 from './assets/stones/white00_128.png';
-import white01 from './assets/stones/white01_128.png';
-import white02 from './assets/stones/white02_128.png';
-import white03 from './assets/stones/white03_128.png';
-import white04 from './assets/stones/white04_128.png';
-import white05 from './assets/stones/white05_128.png';
-import white06 from './assets/stones/white06_128.png';
-import white07 from './assets/stones/white07_128.png';
-import white08 from './assets/stones/white08_128.png';
-import white09 from './assets/stones/white09_128.png';
-import white10 from './assets/stones/white10_128.png';
-import leftIcon from './assets/icons/left.svg';
-import rightIcon from './assets/icons/right.svg';
-import resetIcon from './assets/icons/reset.svg';
+import black00 from "./assets/stones/black00_128.png";
+import black01 from "./assets/stones/black01_128.png";
+import black02 from "./assets/stones/black02_128.png";
+import black03 from "./assets/stones/black03_128.png";
+import white00 from "./assets/stones/white00_128.png";
+import white01 from "./assets/stones/white01_128.png";
+import white02 from "./assets/stones/white02_128.png";
+import white03 from "./assets/stones/white03_128.png";
+import white04 from "./assets/stones/white04_128.png";
+import white05 from "./assets/stones/white05_128.png";
+import white06 from "./assets/stones/white06_128.png";
+import white07 from "./assets/stones/white07_128.png";
+import white08 from "./assets/stones/white08_128.png";
+import white09 from "./assets/stones/white09_128.png";
+import white10 from "./assets/stones/white10_128.png";
+import leftIcon from "./assets/icons/left.svg";
+import rightIcon from "./assets/icons/right.svg";
+import resetIcon from "./assets/icons/reset.svg";
 
-const app = document.querySelector('#app');
+const app = document.querySelector("#app");
 app.innerHTML = `
   <div class="banner"><h1>Kifu Compass</h1></div>
   <div class="board-container">
@@ -44,8 +44,8 @@ app.innerHTML = `
   <div id="suggestion"></div>
 `;
 
-const canvas = document.getElementById('board');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("board");
+const ctx = canvas.getContext("2d");
 const game = new GoGame(9);
 
 const blackSources = [black00, black01, black02, black03];
@@ -74,7 +74,9 @@ function createImages(srcArr) {
 const blackImages = createImages(blackSources);
 const whiteImages = createImages(whiteSources);
 
-let boardImages = Array.from({ length: game.size }, () => Array(game.size).fill(null));
+let boardImages = Array.from({ length: game.size }, () =>
+  Array(game.size).fill(null)
+);
 let boardImagesHistory = [boardImages.map((row) => row.slice())];
 
 let hoverPos = null;
@@ -87,9 +89,9 @@ let CELL_SIZE;
 
 function fetchSuggestedMoves() {
   const boardStr = game.boardToString(game.board);
-  return fetch('/api/next-moves', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  return fetch("/api/next-moves", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ board: boardStr }),
   })
     .then((res) => res.json())
@@ -104,12 +106,13 @@ function fetchSuggestedMoves() {
 
 function updateCanvasSize() {
   const container = canvas.parentElement;
-  const header = document.querySelector('.banner');
-  const controls = document.querySelector('.controls');
-  const suggestion = document.getElementById('suggestion');
+  const header = document.querySelector(".banner");
+  const controls = document.querySelector(".controls");
+  const suggestion = document.getElementById("suggestion");
 
   const paddingTop = parseFloat(getComputedStyle(container).paddingTop) || 0;
-  const paddingBottom = parseFloat(getComputedStyle(container).paddingBottom) || 0;
+  const paddingBottom =
+    parseFloat(getComputedStyle(container).paddingBottom) || 0;
 
   const availableHeight =
     window.innerHeight -
@@ -134,9 +137,9 @@ function drawBoard() {
   const extra = 5; // padding around the outer stones
   const boardStart = CELL_SIZE / 2 - extra;
   const boardSize = CELL_SIZE * game.size + extra * 2;
-  ctx.fillStyle = '#DDB06D';
+  ctx.fillStyle = "#DDB06D";
   ctx.fillRect(boardStart, boardStart, boardSize, boardSize);
-  ctx.strokeStyle = '#000';
+  ctx.strokeStyle = "#000";
   ctx.lineWidth = 1;
   for (let i = 0; i < game.size; i++) {
     ctx.beginPath();
@@ -160,7 +163,7 @@ function drawBoard() {
   ];
   for (const [x, y] of star) {
     ctx.beginPath();
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = "#000";
     ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 3, 0, Math.PI * 2);
     ctx.fill();
   }
@@ -186,7 +189,7 @@ function drawStones() {
           );
         } else {
           ctx.beginPath();
-          ctx.fillStyle = game.board[x][y] === 1 ? '#000' : '#fff';
+          ctx.fillStyle = game.board[x][y] === 1 ? "#000" : "#fff";
           ctx.arc(
             (x + 1) * CELL_SIZE,
             (y + 1) * CELL_SIZE,
@@ -207,8 +210,8 @@ function drawSuggestedMoves() {
   const max = Math.max(...suggestedMoves.map((m) => m.count));
   const startColor = { r: 173, g: 216, b: 230 };
   const endColor = { r: 0, g: 0, b: 139 };
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.font = `${CELL_SIZE / 2}px Arial`;
   for (const { move, count } of suggestedMoves) {
     const [x, y] = move;
@@ -223,7 +226,7 @@ function drawSuggestedMoves() {
     ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = ratio > 0.5 ? '#fff' : '#000';
+    ctx.fillStyle = ratio > 0.5 ? "#fff" : "#000";
     ctx.fillText(count, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE);
   }
 }
@@ -246,7 +249,7 @@ function drawHoverStone() {
   ctx.globalAlpha = 1;
 }
 
-canvas.addEventListener('click', (e) => {
+canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
   const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
@@ -270,13 +273,12 @@ canvas.addEventListener('click', (e) => {
   }
 });
 
-canvas.addEventListener('mousemove', (e) => {
+canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.round((e.clientX - rect.left) / CELL_SIZE - 1);
   const y = Math.round((e.clientY - rect.top) / CELL_SIZE - 1);
-  const samePos = hoverPos && hoverPos.x === x && hoverPos.y === y;
-  const needsNewImg =
-    !samePos || hoverColor !== game.currentPlayer || hoverImg === null;
+  //   const samePos = hoverPos && hoverPos.x === x && hoverPos.y === y;
+  const needsNewImg = hoverColor !== game.currentPlayer || hoverImg === null;
   hoverPos = { x, y };
   if (
     x >= 0 &&
@@ -296,31 +298,35 @@ canvas.addEventListener('mousemove', (e) => {
   drawBoard();
 });
 
-canvas.addEventListener('mouseleave', () => {
+canvas.addEventListener("mouseleave", () => {
   hoverPos = null;
   hoverImg = null;
   drawBoard();
 });
 
-document.getElementById('back').addEventListener('click', () => {
+document.getElementById("back").addEventListener("click", () => {
   if (game.undo()) {
-    boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
+    boardImages = boardImagesHistory[game.currentIndex].map((row) =>
+      row.slice()
+    );
     suggestedMoves = [];
     drawBoard();
     fetchSuggestedMoves();
   }
 });
 
-document.getElementById('forward').addEventListener('click', () => {
+document.getElementById("forward").addEventListener("click", () => {
   if (game.redo()) {
-    boardImages = boardImagesHistory[game.currentIndex].map((row) => row.slice());
+    boardImages = boardImagesHistory[game.currentIndex].map((row) =>
+      row.slice()
+    );
     suggestedMoves = [];
     drawBoard();
     fetchSuggestedMoves();
   }
 });
 
-document.getElementById('clear').addEventListener('click', () => {
+document.getElementById("clear").addEventListener("click", () => {
   game.clear();
   boardImages = Array.from({ length: game.size }, () =>
     Array(game.size).fill(null)
@@ -332,7 +338,7 @@ document.getElementById('clear').addEventListener('click', () => {
   fetchSuggestedMoves();
 });
 
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   updateCanvasSize();
   drawBoard();
 });
