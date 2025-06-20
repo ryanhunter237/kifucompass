@@ -73,6 +73,24 @@ export function drawBoardBackground(boardCtx, game) {
 
 export function drawStones(ctx, boardImages, game) {
   const size = CELL_SIZE - 4;
+  
+  // Find the last played move by comparing current and previous board states
+  let lastMovePos = null;
+  if (game.currentIndex > 0 && game.history.length > 1) {
+    const currentBoard = game.history[game.currentIndex];
+    const prevBoard = game.history[game.currentIndex - 1];
+    
+    for (let x = 0; x < game.size; x++) {
+      for (let y = 0; y < game.size; y++) {
+        if (currentBoard[x][y] !== prevBoard[x][y] && currentBoard[x][y] !== 0) {
+          lastMovePos = { x, y, color: currentBoard[x][y] };
+          break;
+        }
+      }
+      if (lastMovePos) break;
+    }
+  }
+  
   for (let x = 0; x < game.size; x++) {
     for (let y = 0; y < game.size; y++) {
       if (game.board[x][y] !== 0) {
@@ -96,6 +114,22 @@ export function drawStones(ctx, boardImages, game) {
             Math.PI * 2
           );
           ctx.fill();
+        }
+        
+        // Draw marker circle for last played move
+        if (lastMovePos && x === lastMovePos.x && y === lastMovePos.y) {
+          ctx.beginPath();
+          ctx.strokeStyle = lastMovePos.color === 1 ? "#fff" : "#000";
+          ctx.lineWidth = (CELL_SIZE / 2 - 2) * 0.15;
+          const markerRadius = (CELL_SIZE / 2 - 2) * 0.6;
+          ctx.arc(
+            (x + 1) * CELL_SIZE,
+            (y + 1) * CELL_SIZE,
+            markerRadius,
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
         }
       }
     }
