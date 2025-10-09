@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ogs_db
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - ogs_database_dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
@@ -41,4 +41,5 @@ services:
       - frontend
 
 volumes:
-  dbdata:
+  ogs_database_dbdata:
+    external: true

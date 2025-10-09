@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from db import init_db, close_db, get_pool
 import asyncpg
 import numpy as np
 from functools import partial
 from hashlib import blake2b
 from contextlib import asynccontextmanager
+import math
 
 
 @asynccontextmanager
@@ -70,27 +71,47 @@ def get_canonical_transform(board: np.ndarray) -> str:
     return candidate_transform
 
 
-# board_str should have 0 for empty spots, 1 for black stone, 2 for white stone
-@app.get("/movecounts")
-async def get_move_counts(board_str: str, pool: asyncpg.Pool = Depends(get_pool)):
-    board = np.frombuffer(board_str.encode("ascii"), dtype=np.uint8) - ord("0")
-    board = board.reshape((9, 9))
+def _parse_board(board_str: str) -> np.ndarray:
+    try:
+        buffer = board_str.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise ValueError("board must be ASCII digits") from exc
+
+    board = np.frombuffer(buffer, dtype=np.uint8) - ord("0")
+    if board.size == 0:
+        raise ValueError("board must not be empty")
+
+    if not np.isin(board, (0, 1, 2)).all():
+        raise ValueError("board may only contain digits 0, 1, or 2")
+
+    size = int(math.sqrt(board.size))
+    if size * size != board.size or size == 0:
+        raise ValueError("board must represent a square grid")
+
+    return board.reshape((size, size))
+
+
+async def _lookup_moves(board: np.ndarray, pool: asyncpg.Pool):
     key = get_canonical_transform(board)
-    # need to copy transformed board to ensure it's a contiguous array in memory for hashing
     tfm_board = BOARD_TRANSFORMS[key](board).copy()
-    # should I use tfm_board.tobytes() ?
     tfm_board_hash = blake2b(tfm_board.data, digest_size=8).digest()
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             "SELECT move_x, move_y, freq FROM move_counts where board_hash = $1",
             tfm_board_hash,
         )
-        inv_move_transform = INVERSE_MOVE_TRANSFORMS[key]
-        return [
-            {
-                "x": inv_move_transform(x, y)[0],
-                "y": inv_move_transform(x, y)[1],
-                "count": freq,
-            }
-            for x, y, freq in rows
-        ]
+
+    inv_move_transform = INVERSE_MOVE_TRANSFORMS[key]
+    return [(*inv_move_transform(x, y), freq) for x, y, freq in rows]
+
+
+# board_str should have 0 for empty spots, 1 for black stone, 2 for white stone
+@app.get("/movecounts")
+async def get_move_counts(board_str: str, pool: asyncpg.Pool = Depends(get_pool)):
+    try:
+        board = _parse_board(board_str)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    move_counts = await _lookup_moves(board, pool)
+    return [{"x": x, "y": y, "count": freq} for x, y, freq in move_counts]
