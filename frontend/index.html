@@ -1,78 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="data:," />
-    <title>Kifu Compass</title>
-    <style>
-      html,
-      body,
-      #app {
-        height: 100%;
-        margin: 0;
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OGS Board Query</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    input, button, textarea {
+      font-size: 1rem;
+      padding: 0.4rem;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    button {
+      width: auto;
+      cursor: pointer;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.4rem;
+      text-align: center;
+    }
+    th {
+      background-color: #f3f3f3;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>OGS Board Pattern Query</h1>
+
+  <p>Enter a 9×9 board string (81 digits using 0 for empty, 1 for black, 2 for white):</p>
+
+  <textarea id="board_str" rows="3" placeholder="e.g. 000000000000000000000000000000000000000000000000000000000000000000000000000000000"></textarea>
+  <button onclick="queryAPI()">Query API</button>
+
+  <div id="status"></div>
+  <table id="results" style="display: none;">
+    <thead>
+      <tr><th>X</th><th>Y</th><th>Count</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function queryAPI() {
+      const boardStr = document.getElementById('board_str').value.trim();
+      const status = document.getElementById('status');
+      const table = document.getElementById('results');
+      const tbody = table.querySelector('tbody');
+
+      if (!boardStr) {
+        status.textContent = 'Please enter a board string.';
+        status.className = 'error';
+        table.style.display = 'none';
+        return;
       }
 
-      #app {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
+      status.textContent = 'Loading...';
+      status.className = '';
 
-      .banner {
-        width: 100%;
-        text-align: center;
-        background: #333;
-        color: #fff;
-        padding: 0.25rem 0;
-      }
+      try {
+        const res = await fetch(`/api/movecounts/?board_str=${encodeURIComponent(boardStr)}`);
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}`);
+        }
+        const data = await res.json();
 
-      .board-container {
-        flex: 1;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0.5rem 0 0.25rem 0;
-      }
+        if (data.length === 0) {
+          status.textContent = 'No matching moves found for this board.';
+          table.style.display = 'none';
+          return;
+        }
 
-      #board {
-        width: 100%;
-        height: auto;
-        max-height: 100%;
-        aspect-ratio: 1 / 1;
-      }
+        tbody.innerHTML = '';
+        for (const {x, y, count} of data) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${x}</td><td>${y}</td><td>${count}</td>`;
+          tbody.appendChild(tr);
+        }
 
-      .controls {
-        display: flex;
-        gap: 0.5rem;
-        padding-bottom: 0.5rem;
+        table.style.display = 'table';
+        status.textContent = `Found ${data.length} moves.`;
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Error: ' + err.message;
+        status.className = 'error';
+        table.style.display = 'none';
       }
-
-      .control-btn {
-        background: #eee;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        width: 60px;
-        height: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-      }
-
-      .control-btn:hover {
-        background: #ddd;
-      }
-
-      .control-btn img {
-        width: 60%;
-        height: 60%;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+    }
+  </script>
+</body>
 </html>

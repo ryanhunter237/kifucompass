@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: ogsanalysis_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ogs_db
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    container_name: ogsanalysis_api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/ogs_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: ogsanalysis_frontend
+    depends_on:
+      - api
+
+  nginx:
+    build: ./nginx
+    container_name: ogsanalysis_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - frontend
+
+volumes:
+  dbdata:
