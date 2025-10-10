@@ -1,3 +1,5 @@
+import { formatMoveCount } from "./format.js";
+
 let CELL_SIZE = 0;
 
 export function getCellSize() {
@@ -144,7 +146,7 @@ export function drawSuggestedMoves(ctx, suggestedMoves, game) {
   const endColor = { r: 0, g: 0, b: 139 };
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `${CELL_SIZE / 2}px Arial`;
+  ctx.font = `${CELL_SIZE / 3}px Arial`;
   for (const { move, count } of suggestedMoves) {
     const [x, y] = move;
     if (game.board[x][y] !== 0) continue;
@@ -159,7 +161,11 @@ export function drawSuggestedMoves(ctx, suggestedMoves, game) {
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.fillStyle = ratio > 0.5 ? "#fff" : "#000";
-    ctx.fillText(count, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE);
+    ctx.fillText(
+      formatMoveCount(count),
+      (x + 1) * CELL_SIZE,
+      (y + 1) * CELL_SIZE
+    );
   }
 }
 
