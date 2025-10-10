@@ -2,6 +2,8 @@ import { formatMoveCount } from "./format.js";
 
 let CELL_SIZE = 0;
 
+export const HOVER_STONE_OPACITY = 0.85;
+
 export function getCellSize() {
   return CELL_SIZE;
 }
@@ -176,7 +178,7 @@ export function drawHoverStone(ctx, hoverPos, hoverImg, game) {
   if (game.board[x][y] !== 0) return;
   const size = CELL_SIZE - 4;
   if (!hoverImg) return;
-  ctx.globalAlpha = 0.6;
+  ctx.globalAlpha = HOVER_STONE_OPACITY;
   ctx.drawImage(
     hoverImg,
     (x + 1) * CELL_SIZE - size / 2,
