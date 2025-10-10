@@ -1,26 +1,33 @@
 import { http, delay, HttpResponse } from "msw";
 
 export const handlers = [
-  http.post("/api/next-moves", async ({ request }) => {
-    const { board } = await request.json();
+  http.get("/api/movecounts", async ({ request }) => {
+    const url = new URL(request.url);
+    const board = url.searchParams.get("board_str") ?? "";
     const size = Math.sqrt(board.length);
-    const moves = [];
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        if (board[i * size + j] === "0") {
-          moves.push({
-            move: [i, j],
+
+    if (!Number.isInteger(size) || size <= 0) {
+      return HttpResponse.json([]);
+    }
+
+    const candidates = [];
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        if (board[x * size + y] === "0") {
+          candidates.push({
+            x,
+            y,
             count: Math.floor(Math.random() * 100),
           });
         }
       }
     }
 
-    const maxMoves = Math.max(1, Math.floor(moves.length / 2));
+    const maxMoves = Math.max(1, Math.floor(candidates.length / 2) || 1);
     const numMoves = Math.floor(Math.random() * maxMoves) + 1;
-    const subset = moves.sort(() => 0.5 - Math.random()).slice(0, numMoves);
+    const subset = candidates.sort(() => 0.5 - Math.random()).slice(0, numMoves);
 
     await delay();
-    return HttpResponse.json({ moves: subset });
+    return HttpResponse.json(subset);
   }),
 ];
