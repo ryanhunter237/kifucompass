@@ -1,7 +1,6 @@
 const movesCache = new Map();
 
 function normalizeMoves(data) {
-  if (Array.isArray(data)) {
     return data
       .map((item) => {
         if (!item || typeof item !== "object") return null;
@@ -14,37 +13,6 @@ function normalizeMoves(data) {
         return { move: [x, y], count };
       })
       .filter(Boolean);
-  }
-
-  if (data && Array.isArray(data.moves)) {
-    return data.moves
-      .map((item) => {
-        if (!item || typeof item !== "object") return null;
-
-        if (Array.isArray(item.move) && item.move.length === 2) {
-          const [rawX, rawY] = item.move;
-          const x = Number(rawX);
-          const y = Number(rawY);
-          const count = Number(item.count);
-          if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isFinite(count)) {
-            return null;
-          }
-          return { move: [x, y], count };
-        }
-
-        const x = Number(item.x);
-        const y = Number(item.y);
-        const count = Number(item.count);
-        if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isFinite(count)) {
-          return null;
-        }
-        return { move: [x, y], count };
-      })
-      .filter(Boolean);
-  }
-
-  console.warn("Unexpected response shape when normalizing moves", data);
-  return [];
 }
 
 export async function fetchSuggestedMoves(game, setMoves, drawBoard) {
