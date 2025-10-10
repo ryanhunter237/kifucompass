@@ -1,9 +1,4 @@
 import GoGame from "./board.js";
-import { worker } from "./mocks/browser.js";
-
-async function initMocks() {
-  await worker.start();
-}
 
 import { blackImages, whiteImages } from "./utils/imageLoader.js";
 import {
@@ -231,9 +226,6 @@ window.addEventListener("resize", () => {
 });
 
 async function init() {
-  if (import.meta.env.MODE === "development") {
-    await initMocks();
-  }
   updateCanvasSize(canvas, boardCanvas, game);
   drawBoardBackground(boardCtx, game);
   drawBoard(
