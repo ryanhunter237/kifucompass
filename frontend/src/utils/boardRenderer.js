@@ -3,6 +3,9 @@ import { formatMoveCount } from "./format.js";
 let CELL_SIZE = 0;
 
 export const HOVER_STONE_OPACITY = 0.85;
+export const SUGGESTED_MOVE_START_COLOR = { r: 205, g: 60, b: 60 };
+export const SUGGESTED_MOVE_END_COLOR = { r: 40, g: 70, b: 200 };
+export const SUGGESTED_MOVE_COLOR_EXPONENT = 0.4;
 
 export function getCellSize() {
   return CELL_SIZE;
@@ -144,8 +147,8 @@ export function drawSuggestedMoves(ctx, suggestedMoves, game) {
   if (!suggestedMoves.length) return;
   const radius = CELL_SIZE / 2 - 2;
   const max = Math.max(...suggestedMoves.map((m) => m.count));
-  const startColor = { r: 173, g: 216, b: 230 };
-  const endColor = { r: 0, g: 0, b: 139 };
+  const startColor = SUGGESTED_MOVE_START_COLOR;
+  const endColor = SUGGESTED_MOVE_END_COLOR;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `${CELL_SIZE / 3}px Arial`;
@@ -153,16 +156,24 @@ export function drawSuggestedMoves(ctx, suggestedMoves, game) {
     const [x, y] = move;
     if (game.board[x][y] !== 0) continue;
     const ratio = max === 0 ? 0 : count / max;
-    const r = Math.round(startColor.r + ratio * (endColor.r - startColor.r));
-    const g = Math.round(startColor.g + ratio * (endColor.g - startColor.g));
-    const b = Math.round(startColor.b + ratio * (endColor.b - startColor.b));
+    const adjustedRatio = Math.pow(ratio, SUGGESTED_MOVE_COLOR_EXPONENT);
+    const r = Math.round(
+      startColor.r + adjustedRatio * (endColor.r - startColor.r)
+    );
+    const g = Math.round(
+      startColor.g + adjustedRatio * (endColor.g - startColor.g)
+    );
+    const b = Math.round(
+      startColor.b + adjustedRatio * (endColor.b - startColor.b)
+    );
     ctx.fillStyle = `rgb(${r},${g},${b})`;
     ctx.globalAlpha = 0.6;
     ctx.beginPath();
     ctx.arc((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = ratio > 0.5 ? "#fff" : "#000";
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    ctx.fillStyle = luminance < 140 ? "#fff" : "#000";
     ctx.fillText(
       formatMoveCount(count),
       (x + 1) * CELL_SIZE,
